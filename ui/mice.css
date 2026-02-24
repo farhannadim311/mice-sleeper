@@ -1,0 +1,79 @@
+table {
+  border-collapse: collapse;
+}
+
+table#dimension-controls th,
+table#dimension-controls td {
+  padding: 2px;
+  border: 1px solid black;
+}
+
+table.gameboard {
+  border: 1px solid #ccc;
+  table-layout: auto;
+  background-color: #eee;
+}
+
+#customgame {
+  width: 50%;
+  font-family: monospace;
+}
+
+#tableholder {
+  display: grid;
+  place-items: start;
+  grid-template-areas: "inner-div";
+  max-width: fit-content !important;
+}
+
+table#thetable,
+table#phantomtable {
+  grid-area: inner-div;
+}
+
+table#phantomtable {
+  z-index: 20;
+  opacity: 0;
+}
+
+td {
+  border: 1px solid #ccc;
+  padding: 0px;
+  margin: 0px;
+  white-space: nowrap;
+  box-sizing: border-box;
+  line-height: 1;
+  height: fit-content !important;
+  width: fit-content !important;
+}
+
+img.mice {
+  position: relative;
+  left: 0px;
+  top: 0px;
+  padding: 0px;
+  margin: 0px;
+  -ms-interpolation-mode: nearest-neighbor;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  vertical-align: middle;
+}
+
+#log {
+  width: 100%;
+  height: 10em;
+  overflow: scroll;
+  font-family: monospace;
+  white-space: pre;
+  border: 1px solid black;
+  user-select: contain;
+  padding: 5px;
+}
+
+#log > .comment {
+  color: #7baaff;
+}
+
+#log > .errormessage {
+  color: #dd0000;
+}

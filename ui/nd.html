@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html lang="en-US">
+
+<head>
+<title>6.101: N-D Mice-Sleeper</title>
+<script src="confetti.min.js"></script>
+<link rel="stylesheet" href="mice.css" />
+<style>
+#dimensions{
+  grid-row-start: 1;
+  grid-column-start: 2;
+  margin-left: 1em;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+<center>
+<h1><img src="images/tesseract.gif" class="mice" height="64"/>
+<img src="images/mouse_asleep.png" class="mice" height="64"/>
+6.101 Mice-Sleeper Game (N-D)
+<img src="images/mouse_awake.png" class="mice" height="64"/>
+<img src="images/tesseract.gif" class="mice" height="64"/></h1>
+
+
+<div id="tableholder">
+<table border="1" id="thetable"></table>
+<table border="1" id="phantomtable"></table>
+<div id="dimensions"><table border="1" id="dimension-controls">
+</table></div>
+</div>
+
+<p><span id="confettisource" style="height:0px !important;"></span><br/><b id="status"></b></p>
+
+<input type="checkbox" id="xray" /> show complete board
+
+<p>enter dimensions as a list or tuple: <input type="text" id="customgame" value="(5, 6, 3)" />
+<button id="customstart">new game</button>
+</p>
+
+
+</center>
+
+<p>
+<h4 style="margin-bottom: 2px;">Moves Log:</h4>
+<div id="log">
+</div>
+<button id="copytoclipboard">copy moves log to clipboard</button><span id="clipboard_feedback" style="visibility: hidden;"> Copied!</span>
+
+<script src="mice_nd.js"></script>
+
+</body>
+</html>

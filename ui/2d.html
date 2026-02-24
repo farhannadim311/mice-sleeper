@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html lang="en-US">
+
+<head>
+<title>6.101: Mice-Sleeper</title>
+<script src="confetti.min.js"></script>
+<link rel="stylesheet" href="mice.css" />
+</head>
+
+<body>
+<center>
+<h1><img src="images/mouse_asleep.png" class="mice" height="64"/>
+6.101 Mice-Sleeper Game
+<img src="images/mouse_awake.png" class="mice" height="64"/></h1>
+
+
+<div id="tableholder">
+<table border="1" id="thetable"></table>
+<table border="1" id="phantomtable"></table>
+</div>
+
+<p><span id="confettisource" style="height:0px !important;"></span><br/><b id="status"></b></p>
+
+<input type="checkbox" id="xray" /> show complete board
+
+<p id="buttons"></p>
+<p><button id="customstart">new custom game:</button> <input type="text" id="customgame" value="new_game_2d(5, 5, 3)" /></p>
+
+</center>
+
+<p>
+<h4 style="margin-bottom: 2px;">Moves Log:</h4>
+<div id="log">
+</div>
+<button id="copytoclipboard">copy moves log to clipboard</button><span id="clipboard_feedback" style="visibility: hidden;"> Copied!</span>
+
+<script src="mice_2d.js"></script>
+
+</body>
+</html>
