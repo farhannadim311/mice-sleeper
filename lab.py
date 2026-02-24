@@ -34,6 +34,22 @@ def dump(game, all_keys=False):
         else:
             print(f"{key}:", val)
 
+# HELPER FUNCTION
+
+def get_neighbor(row, col, game):
+    """
+    Finds all the adjacent neighbor of (row, col)
+    """
+    dimensions = game['dimensions']
+    adjacent = [(-1, 0), (0, -1), (-1,-1), (1,1),(0,1),(1, 0),(1, -1), (-1, 1)]
+    ret = []
+    for n in adjacent:
+        del_row, del_col = row + n[0], col + n[1]
+        if((0 <= del_row < dimensions[0]) and (0 <= del_col < dimensions[1])):
+            ret.append((del_row, del_col))
+    return ret
+
+            
 
 # 2-D IMPLEMENTATION
 
@@ -63,7 +79,14 @@ def new_game_2d(nrows, ncolumns, num_mice):
         [False, False, False, False]
         [False, False, False, False]
     """
-    pass
+    return {
+        "dimensions": (nrows, ncolumns),
+        'state' : "ongoing",
+        "board" : [[0] * ncolumns for _ in range(nrows)],
+        "visible": [[False] * ncolumns for _ in range(nrows)], 
+        "mice" : num_mice
+    }
+
 
 
 def place_mice_2d(game, num_mice, disallowed):
@@ -103,7 +126,33 @@ def place_mice_2d(game, num_mice, disallowed):
         [False, False]
         [False, False]
     """
-    raise NotImplementedError
+    mice_list = set()
+    adjacent = [(-1, 0), (0, -1), (-1,-1), (1,1),(0,1),(1, 0),(1, -1), (-1, 1)]
+    row, col = game['dimensions']
+    for n in random_coordinates(game["dimensions"]):
+        if(n not in disallowed):
+            if n not in mice_list:
+                mice_list.add(n)
+        if(len(mice_list) == num_mice):
+            break
+    for coordinates in mice_list:
+        r,c = coordinates
+        game['board'][r][c] = 'm'    
+    
+    for r in range(row):
+        for c in range(col):
+            count = 0
+            if((r,c) in mice_list):
+                continue
+            for neighbor in adjacent:
+                del_r, del_c = neighbor
+                if((0 <= (r + del_r) < row) and (0 <= (c + del_c) < col)):
+                    if(game['board'][r + del_r][c + del_c] == 'm'):
+                        count += 1
+            game['board'][r][c] = count
+
+    
+
 
 
 def reveal_2d(game, row, col):
@@ -160,7 +209,74 @@ def reveal_2d(game, row, col):
         [True, False, True, True]
         [False, False, True, True]
     """
-    raise NotImplementedError
+    #If game is not ongoing or the square is already revealed
+    if(game['state'] != 'ongoing' or game['visible'][row][col] == True):
+        return 0
+
+    #If it is first time playing
+    visible = game['visible']
+    first_time = True
+    dimensions = game['dimensions']
+    disallowed = set()
+    adjacent = [(-1, 0), (0, -1), (-1,-1), (1,1),(0,1),(1, 0),(1, -1), (-1, 1)]
+    num_mice = game['mice']
+    for row in range(len(visible)):
+        for col in range(len(visible[0])):
+            if(visible[row][col] == "True"):
+                first_time = False
+    
+    if(first_time):
+        disallowed.add((row, col))
+        for change in adjacent:
+            del_row, del_col = row + change[0], col + change[1]
+            if(0 <= del_row < dimensions[0] and 0 <= del_col < dimensions[1]):
+                disallowed.add((del_row, del_col))
+    
+    place_mice_2d(game, num_mice, disallowed)
+
+    if(game['board'][row][col] == 'm'):
+        game['visible'][row][col] = True
+        game['state'] = "Lost"
+        return 0
+    
+    #Flood Fill Step
+    visited = {(row, col)}
+    count = 0
+    def flood_fill(r, c):
+        nonlocal count
+        game["visible"][r][c] = True
+        count += 1
+        tmp = []
+        for neighbor in get_neighbor(r, c, game):
+            if(neighbor not in visited):
+                if(game['board'][neighbor[0]][neighbor[1]] == 'm'):
+                    break
+                else:
+                    tmp.append((neighbor[0], neighbor[1]))
+            visited.update(tmp)
+            for row, col in tmp:
+                flood_fill(row, col)
+    flood_fill(row, col)
+    #Check if we won the game
+    all_mice_loc = set()
+    won = True
+    for row in range(len(game['board'])):
+        for col in range(len(game['board'][0])):
+            if(game['board'][row][col] == 'm'):
+                all_mice_loc.add((row, col))
+    for row in range(len(game['visible'])):
+        for col in range(len(game['visible'][0])):
+            if((row, col) not in all_mice_loc):
+                if(game['visible'][row][col] == False):
+                    won = False
+                    break
+    game['state'] = won
+
+    return count
+
+
+
+
 
 
 def render_2d(game, all_visible=False):
@@ -388,8 +504,8 @@ def random_coordinates(dimensions):
 
 if __name__ == "__main__":
     # Test with doctests. Helpful to debug individual lab.py functions.
-    _doctest_flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    doctest.testmod(optionflags=_doctest_flags)  # runs ALL doctests
+    #_doctest_flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+    #doctest.testmod(optionflags=_doctest_flags)  # runs ALL doctests
 
     # Alternatively, can run the doctests JUST for specified function/methods,
     # e.g., for render_2d or any other function you might want.  To do so,
@@ -398,9 +514,11 @@ if __name__ == "__main__":
     # the verbose flag can be set to True to see all test results, including
     # those that pass.
     #
-    # doctest.run_docstring_examples(
-    #    render_2d,
-    #    globals(),
-    #    optionflags=_doctest_flags,
-    #    verbose=False
-    # )
+    #doctest.run_docstring_examples(
+        #place_mice_2d,
+       #globals(),
+        #optionflags=_doctest_flags,
+        #verbose=False
+     #)
+    game = new_game_2d(2, 4, 3)
+    print(reveal_2d(game, 0, 3))
