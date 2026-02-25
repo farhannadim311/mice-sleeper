@@ -341,6 +341,8 @@ def get_cross(coordinates):
     """
     Gets the cross lists for all combinations of coordinates
     """
+    
+
     adjacent = [-1,0,1]
     res = []
     for c in coordinates:
@@ -351,7 +353,9 @@ def get_cross(coordinates):
         res.append(tmp)
     return res
   
-
+l = (1,)
+a = get_cross(l)
+print(a)
 
 
 
@@ -381,7 +385,7 @@ def get_n(cross):
             return first_seq
     return get_combinations(cross)
 
-
+print(get_n(a))
 
 
 
@@ -394,7 +398,13 @@ def in_bound(coordinate, game):
     """
     Checks if a coordinate is in bound
     """
+
     dimension = game['dimensions']
+    if(len(dimension) == 1 and type(coordinate) == int):
+        return 0 <= coordinate < dimension[0]
+    if(len(dimension) == 1):
+        return 0 <= coordinate[0] < dimension[0]
+
     for d,c in zip(dimension, coordinate):
         if(not(0 <= c  < d)):
             return False
@@ -406,8 +416,8 @@ def get_coordinate(coordinate, game, board):
     """
     Gets the cell from a coordinate
     """
-    if(len(coordinate) == 1):
-        game[board][coordinate]
+    if(type(coordinate) == int):
+        return game[board][coordinate]
     curr_board = game[board]
     for i in range(len(coordinate) -1):
         curr_board = curr_board[coordinate[i]]
@@ -415,14 +425,14 @@ def get_coordinate(coordinate, game, board):
    
              
 
-def set_coordinate(coordinate, game, thingtoSet, board):
+def set_coordinate(coordinate, game, thingtoSet):
     """
     Sets the coordinate to the value specified by the user
     """
-    if(len(coordinate) == 1):
-        game[board][coordinate] = thingtoSet
+    if(type(coordinate) == int):
+        game[coordinate] = thingtoSet
         return
-    curr_board = game[board]
+    curr_board = game
     for i in range(len(coordinate) - 1):
         curr_board = curr_board[coordinate[i]]
     curr_board[coordinate[-1]] = thingtoSet
@@ -454,35 +464,34 @@ def check_first_nd(game):
     """
     if(not game):
         return True
-    if not(isinstance(x[0] , list)):
-        for i in range(len(x)):
-            if(x[i] == True):
+    if not(isinstance(game[0] , list)):
+        for i in range(len(game)):
+            if(game[i] == True):
                 return False
         return True
     else:
-        first = check_won_nd(game[0])
-        rest = check_won_nd(game[1:])
+        first = check_first_nd(game[0])
+        rest = check_first_nd(game[1:])
         return first and rest
 
-def gen_coordinates(cross):
+def gen_coordinates(dimension):
     """
     Generates all possible coordinates of arbitrary depth
     """
     res = []
-    if (len(cross) ==  1):
-        for i in range(cross[0]):
+    if (len(dimension) ==  1):
+        for i in range(dimension[0]):
             res.append((i,))
         return res
     else:
-        first = cross[0]
-        rest = gen_coordinates(cross[1:])
+        first = dimension[0]
+        rest = gen_coordinates(dimension[1:])
         first_seq = []
         for seq in rest:
             for i in range(first):
                 first_seq.append((i, *seq))
         return first_seq
-coordinates = (2,4,2)
-print(gen_coordinates(coordinates))
+
 
 
 
@@ -592,9 +601,9 @@ def place_mice_nd(game, num_mice, disallowed):
     #Placing the mice
     print(len(mice_list))
     for coordinates in mice_list:
-        set_coordinate(coordinates, game, 'm', 'board')
+        set_coordinate(coordinates, game['board'], 'm')
 
-    for coordinates in mice_list:
+    for coordinates in mice_list:        
         cross = get_cross(coordinates)
         neighbors = get_n(cross)
         for c in neighbors:
@@ -602,7 +611,7 @@ def place_mice_nd(game, num_mice, disallowed):
                 num = get_coordinate(c, game, "board")
                 if(num != 'm'):
                     num += 1
-                    set_coordinate(c, game, num, 'board')
+                    set_coordinate(c, game['board'], num)
 
 
 
@@ -686,15 +695,14 @@ def reveal_nd(game, coordinates):
     first_time = check_first_nd(visible)
     
     if(first_time):
-        disallowed.add(coordinates)
         cross = get_cross(coordinates)
         for neighbor in get_n(cross):
             disallowed.add(neighbor)
     
-        place_mice_2d(game, num_mice, disallowed)
+        place_mice_nd(game, num_mice, disallowed)
 
-    if(get_coordinate(coordinate, game, 'board') == 'm'):
-        set_coordinate(coordinates, game, True, "visible")
+    if(get_coordinate(coordinates, game, 'board') == 'm'):
+        set_coordinate(coordinates, game['visible'], True)
         game['state'] = "lost"
         return 1
     
@@ -704,29 +712,29 @@ def reveal_nd(game, coordinates):
     def flood_fill(c):
         nonlocal count
         if(get_coordinate(c, game, 'visible') == False):
-            set_coordinate(c, game, True, 'visible')
+            set_coordinate(c, game['visible'], True)
             count += 1
         if(get_coordinate(c, game, 'board') != 0):
             return
         cross = get_cross(c)
         for neighbor in get_n(cross):
-            if(neighbor not in visited and neighbor != c):
+            if(isinstance(neighbor, int)):
+                neighbor = (neighbor, )
+            if(in_bound(neighbor, game) and neighbor not in visited and neighbor != c):
                 visited.add(neighbor)
                 flood_fill(neighbor)
     #Check if we won the game
     flood_fill(coordinates)
     all_mice_loc = set()
     won = True
-    for r in range(len(game['board'])):
-        for c in range(len(game['board'][0])):
-            if(game['board'][r][c] == 'm'):
-                all_mice_loc.add((r ,c))
-    for r in range(len(game['visible'])):
-        for c in range(len(game['visible'][0])):
-            if((r, c) not in all_mice_loc):
-                if(game['visible'][r][c] == False):
-                    won = False
-                    break
+    for c in gen_coordinates(game['dimensions']):
+        if(get_coordinate(c, game, 'board') == 'm'):
+            all_mice_loc.add(c)
+    for c in gen_coordinates(game['dimensions']):
+        if(c not in all_mice_loc):
+            if(get_coordinate(c, game, 'visible') == False):
+                won = False
+                break
     if(won == True):
         game['state'] = "won"
     
@@ -763,7 +771,39 @@ def render_nd(game, all_visible=False):
     [[['m', '3'], ['m', '3'], ['1', '1'], [' ', ' ']],
      [['m', '3'], ['3', '3'], ['1', '1'], [' ', ' ']]]
     """
-    raise NotImplementedError
+    def recurList(x, lstDim):
+        """
+        Returns a list of arbitary depth
+        """
+        res = []
+        if not lstDim:
+            return x.copy()
+        else:
+            a = lstDim[0]
+            dim = recurList(x.copy(), lstDim[1:]) 
+            for j in range(a):
+                tmp = deepcopy(dim)
+                res.append(tmp[::-1])
+        return res.copy()
+    
+    res = recurList([0], game['dimensions'])
+    if(all_visible):
+        for c in gen_coordinates(game['dimensions']):
+            if(get_coordinate(c, game, 'board') == 0):
+                set_coordinate(c, res, ' ')
+            else:
+                set_coordinate(c, res, str(get_coordinate(c, game, 'board')))
+    else:
+        for c in gen_coordinates(game['dimensions']):
+            if(get_coordinate(c, game, 'visible') == False):
+                set_coordinate(c, res, "_")
+            else:
+                if(get_coordinate(c, game, 'board') == 0):
+                    set_coordinate(c, res, ' ')
+                else:
+                    set_coordinate(c, res, str(get_coordinate(c, game, 'board')))
+    return res
+
 
 
 def random_coordinates(dimensions):
@@ -810,4 +850,8 @@ if __name__ == "__main__":
     #g = new_game_nd((4, 4, 4, 3), 13)
     #place_mice_nd(g, 13, {(0,0,1,1)})
     #print(g['board'])
-    pass
+    game = new_game_nd((4,), 1)
+    print(game)
+    print(reveal_nd(game, (0,)))
+    print(reveal_nd(game, (2,)))
+    print(game)
